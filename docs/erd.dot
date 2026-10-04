@@ -1,0 +1,20 @@
+digraph ERD {
+    rankdir=LR;
+    node [shape=record, fontname="Helvetica", fontsize=10];
+
+    User [label="{User (auths)|email: EmailField (unique)\lfirst_name: CharField\llast_name: CharField\lis_active: Boolean\lis_staff: Boolean\ldate_joined: DateTime\l}"];
+
+    Category [label="{Category (blog)|name: CharField (unique)\lslug: SlugField (unique)\l}"];
+
+    Tag [label="{Tag (blog)|name: CharField (unique)\lslug: SlugField (unique)\l}"];
+
+    Post [label="{Post (blog)|author: FK to User\ltitle: CharField\lslug: SlugField (unique)\lbody: TextField\lcategory: FK to Category (nullable)\ltags: M2M to Tag\lstatus: draft/published\lcreated_at: DateTime\lupdated_at: DateTime\l}"];
+
+    Comment [label="{Comment (blog)|post: FK to Post\lauthor: FK to User\lbody: TextField\lcreated_at: DateTime\l}"];
+
+    User -> Post [label="author (CASCADE)"];
+    Category -> Post [label="category (SET_NULL)"];
+    Post -> Tag [label="tags (M2M)", dir=both];
+    Post -> Comment [label="post (CASCADE)"];
+    User -> Comment [label="author (CASCADE)"];
+}
