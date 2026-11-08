@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% load i18n unfold %}
+
+{% block title %}
+    {% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_("Django site admin") }}
+{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+    {% component "unfold/components/container.html" %}
+
+        <div class="flex flex-col gap-4 mb-4 lg:flex-row">
+            {% for card in cards %}
+                {% component "unfold/components/card.html" with class="lg:w-1/4" title=card.title icon=card.icon %}
+                    {% component "unfold/components/title.html" %}{{ card.value }}{% endcomponent %}
+                {% endcomponent %}
+            {% endfor %}
+        </div>
+
+        <div class="flex flex-col gap-4 mb-4 lg:flex-row">
+            {% component "unfold/components/card.html" with class="lg:w-2/3" title="Posts per category" %}
+                {% component "unfold/components/chart/bar.html" with data=posts_chart height=320 %}{% endcomponent %}
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" with class="lg:w-1/3" title="Published vs drafts" %}
+                <div class="flex flex-col gap-6">
+                    {% component "unfold/components/progress.html" with title="Published" description=published_label value=published_percent %}{% endcomponent %}
+                    {% component "unfold/components/progress.html" with title="Drafts" description=draft_label value=draft_percent %}{% endcomponent %}
+                </div>
+            {% endcomponent %}
+        </div>
+
+        {% component "unfold/components/card.html" with title="Top 5 authors" %}
+            {% component "unfold/components/table.html" with table=top_authors card_included=1 striped=1 %}{% endcomponent %}
+        {% endcomponent %}
+
+    {% endcomponent %}
+{% endblock %}

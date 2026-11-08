@@ -92,7 +92,7 @@ UNFOLD = {
     'SITE_SUBHEADER': 'Posts, comments & users',
     'SITE_SYMBOL': 'edit_note',
     'ENVIRONMENT': 'apps.blog.callbacks.environment_callback',
-    # 'DASHBOARD_CALLBACK': 'apps.blog.callbacks.dashboard_callback',  # step 9
+    'DASHBOARD_CALLBACK': 'apps.blog.callbacks.dashboard_callback',  # step 9
     'SITE_DROPDOWN': [
         {'icon': 'code', 'title': 'GitHub repository', 'link': GITHUB_REPO_URL},
         {'icon': 'menu_book', 'title': 'Unfold docs', 'link': UNFOLD_DOCS_URL},
