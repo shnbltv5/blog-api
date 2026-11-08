@@ -1,5 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
+
 from django.urls import reverse, reverse_lazy
 
 from settings import conf
@@ -81,96 +82,118 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ADMIN_POSTS_CHANGELIST = "admin:blog_post_changelist"
+ADMIN_POSTS_CHANGELIST = 'admin:blog_post_changelist'
+GITHUB_REPO_URL = 'https://github.com/shnbltv5/blog-api'
+UNFOLD_DOCS_URL = 'https://unfoldadmin.com/docs/'
 
 UNFOLD = {
-    "SITE_TITLE": "Blog API admin",
-    "SITE_HEADER": "Blog API",
-    "SITE_SUBHEADER": "Posts, comments & users",
-    "SITE_SYMBOL": "edit_note",  # иконка из fonts.google.com/icons
-    "ENVIRONMENT": "apps.blog.callbacks.environment_callback",
-   # "DASHBOARD_CALLBACK": "apps.blog.callbacks.dashboard_callback",
-    "SITE_DROPDOWN": [
-        {"icon": "code", "title": "GitHub repository", "link": "https://github.com/shnbltv5/blog-api"},
-        {"icon": "menu_book", "title": "Unfold docs", "link": "https://unfoldadmin.com/docs/"},
+    'SITE_TITLE': 'Blog API admin',
+    'SITE_HEADER': 'Blog API',
+    'SITE_SUBHEADER': 'Posts, comments & users',
+    'SITE_SYMBOL': 'edit_note',
+    'ENVIRONMENT': 'apps.blog.callbacks.environment_callback',
+    # 'DASHBOARD_CALLBACK': 'apps.blog.callbacks.dashboard_callback',  # step 9
+    'SITE_DROPDOWN': [
+        {'icon': 'code', 'title': 'GitHub repository', 'link': GITHUB_REPO_URL},
+        {'icon': 'menu_book', 'title': 'Unfold docs', 'link': UNFOLD_DOCS_URL},
     ],
-    "COMMAND": {
-        "search_models": True,   # Ctrl+K ищет по данным моделей (нужны search_fields)
-        "show_history": True,
+    'COMMAND': {
+        'search_models': True,  # Ctrl+K searches model data (needs search_fields)
+        'show_history': True,
     },
-    "COLORS": {
-        "primary": {   # Tailwind teal; можешь взять любой другой цвет
-            "50": "oklch(98.4% 0.014 180.72)",
-            "100": "oklch(95.3% 0.051 180.801)",
-            "200": "oklch(91% 0.096 180.426)",
-            "300": "oklch(85.5% 0.138 181.071)",
-            "400": "oklch(77.7% 0.152 181.912)",
-            "500": "oklch(70.4% 0.14 182.503)",
-            "600": "oklch(60% 0.118 184.704)",
-            "700": "oklch(51.1% 0.096 186.391)",
-            "800": "oklch(43.7% 0.078 188.216)",
-            "900": "oklch(38.6% 0.063 188.416)",
-            "950": "oklch(27.7% 0.046 192.524)",
+    'COLORS': {
+        'primary': {  # Tailwind teal
+            '50': 'oklch(98.4% 0.014 180.72)',
+            '100': 'oklch(95.3% 0.051 180.801)',
+            '200': 'oklch(91% 0.096 180.426)',
+            '300': 'oklch(85.5% 0.138 181.071)',
+            '400': 'oklch(77.7% 0.152 181.912)',
+            '500': 'oklch(70.4% 0.14 182.503)',
+            '600': 'oklch(60% 0.118 184.704)',
+            '700': 'oklch(51.1% 0.096 186.391)',
+            '800': 'oklch(43.7% 0.078 188.216)',
+            '900': 'oklch(38.6% 0.063 188.416)',
+            '950': 'oklch(27.7% 0.046 192.524)',
         },
     },
-    "SIDEBAR": {
-        "show_search": True,
-        "show_all_applications": False,
-        "navigation": [
+    'SIDEBAR': {
+        'show_search': True,
+        'show_all_applications': False,
+        'navigation': [
             {
-                "title": "Overview",
-                "items": [
-                    {"title": "Dashboard", "icon": "dashboard", "link": reverse_lazy("admin:index")},
+                'title': 'Overview',
+                'items': [
+                    {
+                        'title': 'Dashboard',
+                        'icon': 'dashboard',
+                        'link': reverse_lazy('admin:index'),
+                    },
                 ],
             },
             {
-                "title": "Content",
-                "separator": True,
-                "items": [
+                'title': 'Content',
+                'separator': True,
+                'items': [
                     {
-                        "title": "Posts",
-                        "icon": "article",
-                        "link": reverse_lazy(ADMIN_POSTS_CHANGELIST),
-                        "badge": "apps.blog.callbacks.drafts_badge",
-                        "badge_variant": "warning",
+                        'title': 'Posts',
+                        'icon': 'article',
+                        'link': reverse_lazy(ADMIN_POSTS_CHANGELIST),
+                        'badge': 'apps.blog.callbacks.drafts_badge',
+                        'badge_variant': 'warning',
                     },
-                    {"title": "Comments", "icon": "chat", "link": reverse_lazy("admin:blog_comment_changelist")},
-                    {"title": "Categories", "icon": "folder", "link": reverse_lazy("admin:blog_category_changelist")},
-                    {"title": "Tags", "icon": "sell", "link": reverse_lazy("admin:blog_tag_changelist")},
+                    {
+                        'title': 'Comments',
+                        'icon': 'chat',
+                        'link': reverse_lazy('admin:blog_comment_changelist'),
+                    },
+                    {
+                        'title': 'Categories',
+                        'icon': 'folder',
+                        'link': reverse_lazy('admin:blog_category_changelist'),
+                    },
+                    {
+                        'title': 'Tags',
+                        'icon': 'sell',
+                        'link': reverse_lazy('admin:blog_tag_changelist'),
+                    },
                 ],
             },
             {
-                "title": "Users & Access",
-                "separator": True,
-                "items": [
+                'title': 'Users & Access',
+                'separator': True,
+                'items': [
                     {
-                        "title": "Users",
-                        "icon": "person",
-                        "link": reverse_lazy("admin:auths_user_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
+                        'title': 'Users',
+                        'icon': 'person',
+                        'link': reverse_lazy('admin:auths_user_changelist'),
+                        'permission': lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": "Groups",
-                        "icon": "group",
-                        "link": reverse_lazy("admin:auth_group_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
+                        'title': 'Groups',
+                        'icon': 'group',
+                        'link': reverse_lazy('admin:auth_group_changelist'),
+                        'permission': lambda request: request.user.is_superuser,
                     },
                 ],
             },
         ],
     },
-    "TABS": [
+    'TABS': [
         {
-            "models": ["blog.post"],
-            "items": [
-                {"title": "All", "link": reverse_lazy(ADMIN_POSTS_CHANGELIST)},
+            'models': ['blog.post'],
+            'items': [
+                {'title': 'All', 'link': reverse_lazy(ADMIN_POSTS_CHANGELIST)},
                 {
-                    "title": "Published",
-                    "link": lambda request: reverse(ADMIN_POSTS_CHANGELIST) + "?status__exact=published",
+                    'title': 'Published',
+                    'link': lambda request: (
+                        reverse(ADMIN_POSTS_CHANGELIST) + '?status__exact=published'
+                    ),
                 },
                 {
-                    "title": "Drafts",
-                    "link": lambda request: reverse(ADMIN_POSTS_CHANGELIST) + "?status__exact=draft",
+                    'title': 'Drafts',
+                    'link': lambda request: (
+                        reverse(ADMIN_POSTS_CHANGELIST) + '?status__exact=draft'
+                    ),
                 },
             ],
         },
