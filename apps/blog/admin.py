@@ -1,14 +1,17 @@
 from django.contrib import admin
 from django.db.models import Count, QuerySet
 from django.http import HttpRequest
+from django.utils.text import Truncator
 
 from unfold.admin import ModelAdmin
+from unfold.contrib.filters.admin import AutocompleteSelectFilter, RangeDateTimeFilter
 from unfold.decorators import display
 from unfold.sections import TableSection
 
 from apps.blog.models import Category, Comment, Post, Tag
 
 SECTION_HEIGHT = 300
+COMMENT_PREVIEW_LENGTH = 60
 
 
 class CategoryPostsSection(TableSection):
@@ -59,4 +62,21 @@ class PostAdmin(ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(ModelAdmin):
-    pass
+    list_display = ('post_title', 'author', 'short_body', 'created_at')
+    list_filter = (
+        ('post', AutocompleteSelectFilter),
+        ('author', AutocompleteSelectFilter),
+        ('created_at', RangeDateTimeFilter),
+    )
+    list_filter_submit = True  # filters are applied with a button
+    search_fields = ('body', 'author__email', 'post__title')
+    autocomplete_fields = ('post', 'author')  # search instead of a huge select
+    list_select_related = ('post', 'author')  # JOIN: post and author in one query
+
+    @display(description='Post', ordering='post__title')
+    def post_title(self, obj: Comment) -> str:
+        return obj.post.title
+
+    @display(description='Body')
+    def short_body(self, obj: Comment) -> str:
+        return Truncator(obj.body).chars(COMMENT_PREVIEW_LENGTH)
