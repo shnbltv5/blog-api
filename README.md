@@ -81,3 +81,37 @@ Django REST API для блога с JWT-аутентификацией.
 
 Aidana Shynbulatova, KBTU
 
+## Заполнение базы (seed)
+
+Команда заполняет все модели фейковыми данными (Faker, dev-зависимость):
+
+    python manage.py seed [--users N] [--posts N] [--comments N] [--clear]
+
+| Аргумент     | По умолчанию | Описание                                   |
+|--------------|--------------|--------------------------------------------|
+| `--users`    | 20           | Сколько пользователей создать              |
+| `--posts`    | 100          | Сколько постов создать                     |
+| `--comments` | 500          | Сколько комментариев создать               |
+| `--clear`    | выкл.        | Удалить старые данные (суперюзеры остаются) |
+
+Пример: `python manage.py seed --clear --users 50 --posts 300 --comments 1500`
+
+У всех сид-пользователей пароль `seedpass123`.
+
+## Админка (Django Unfold)
+
+![Dashboard](docs/screenshots/dashboard.png)
+![Список постов с фильтрами](docs/screenshots/post-list-filters.png)
+![Редактирование поста](docs/screenshots/post-edit.png)
+![Список пользователей](docs/screenshots/user-list.png)
+
+Запуск на пустой базе:
+
+    python manage.py migrate
+    python manage.py seed
+    python manage.py createsuperuser
+    python manage.py runserver
+
+## Использование AI
+
+Claude использовался для объяснения документации Django и Unfold и проверки кода. Весь код проверен и запущен мной.
