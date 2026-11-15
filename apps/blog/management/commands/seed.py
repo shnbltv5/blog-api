@@ -40,8 +40,8 @@ SLUG_SUFFIX_RESERVE = 6  # place for "-12345"
 FIRST_SLUG_SUFFIX = 2
 
 # --- dates ---
-DATE_RANGE_DAYS = 365 # posts are spread over the last year
-EDITED_RATIO = 0.3 # share of posts edited after creation
+DATE_RANGE_DAYS = 365  # posts are spread over the last year
+EDITED_RATIO = 0.3  # share of posts edited after creation
 MIN_EDIT_DELAY_DAYS = 1
 MAX_EDIT_DELAY_DAYS = 30
 
@@ -238,12 +238,12 @@ class Command(BaseCommand):
                 )
             )
         created: list[Post] = Post.objects.bulk_create(posts)  # objects now have ids
+
         # auto_now_add / auto_now overwrite dates in bulk_create,
         # bulk_update does not call save(), so it keeps our values
         for post in created:
             post.created_at, post.updated_at = self._post_dates()
         Post.objects.bulk_update(created, ["created_at", "updated_at"])
-
 
         max_tags: int = min(MAX_TAGS_PER_POST, len(tags))
         for post in created:
@@ -274,15 +274,15 @@ class Command(BaseCommand):
         author_ids: list[int] = list(User.objects.values_list("id", flat=True))
         if not author_ids:
             raise CommandError("Cannot create comments: there are no users. Use --users N.")
-        publshed_posts: list[Post] = self._published_posts(new_posts)
-        if not publshed_posts:
+        published_posts: list[Post] = self._published_posts(new_posts)
+        if not published_posts:
             raise CommandError(
                 "Cannot create comments: there are no published posts. Use --posts N."
             )
 
         comments: list[Comment] = [
             Comment(
-                post_id=random.choice(publshed_posts),
+                post=random.choice(published_posts),
                 author_id=random.choice(author_ids),
                 body=self._random_comment_body(),
             )
