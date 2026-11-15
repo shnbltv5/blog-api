@@ -1,5 +1,6 @@
 import random
 import time
+from datetime import datetime, timedelta
 from typing import Any
 
 from faker import Faker
@@ -8,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 
 from apps.blog.models import Category, Comment, Post, Tag
@@ -36,6 +38,12 @@ MAX_PARAGRAPHS = 6
 TITLE_WORDS = 6
 SLUG_SUFFIX_RESERVE = 6  # place for "-12345"
 FIRST_SLUG_SUFFIX = 2
+
+# --- dates ---
+DATE_RANGE_DAYS = 365  # posts are spread over the last year
+EDITED_RATIO = 0.3  # share of posts edited after creation
+MIN_EDIT_DELAY_DAYS = 1
+MAX_EDIT_DELAY_DAYS = 30
 
 # --- comments ---
 MIN_COMMENT_SENTENCES = 1
@@ -85,6 +93,7 @@ class Command(BaseCommand):
 
         self._validate_counts(users=users_count, posts=posts_count, comments=comments_count)
         self.fake = Faker()
+        self.now: datetime = timezone.now()  # one "now" for all dates of this run
         started: float = time.perf_counter()
 
         with transaction.atomic():  # all or nothing + much faster on SQLite
@@ -94,7 +103,7 @@ class Command(BaseCommand):
             categories = self._create_named(Category, CATEGORY_NAMES)
             tags = self._create_named(Tag, TAG_NAMES)
             posts = self._create_posts(posts_count)
-            comments = self._create_comments(comments_count)
+            comments = self._create_comments(comments_count, posts)
 
         elapsed: float = time.perf_counter() - started
         rows: tuple[tuple[str, int], ...] = (
@@ -122,6 +131,21 @@ class Command(BaseCommand):
         Category.objects.all().delete()
         User.objects.filter(is_superuser=False).delete()
         self.stdout.write(self.style.WARNING("Old data deleted (superusers kept)."))
+
+    # ---------- dates ----------
+    def _random_moment_between(self, start: datetime, end: datetime) -> datetime:
+        """Random datetime from start to end (both included)."""
+        seconds: int = max(int((end - start).total_seconds()), 0)
+        return start + timedelta(seconds=random.randint(0, seconds))
+
+    def _post_dates(self) -> tuple[datetime, datetime]:
+        """created_at in the last year; ~30% of posts edited 1-30 days later (not after now)."""
+        year_ago: datetime = self.now - timedelta(days=DATE_RANGE_DAYS)
+        created_at: datetime = self._random_moment_between(year_ago, self.now)
+        if random.random() >= EDITED_RATIO:
+            return created_at, created_at  # not edited: updated_at == created_at
+        delay = timedelta(days=random.randint(MIN_EDIT_DELAY_DAYS, MAX_EDIT_DELAY_DAYS))
+        return created_at, min(created_at + delay, self.now)
 
     # ---------- users ----------
     def _unique_email(self, first_name: str, last_name: str, used: set[str]) -> str:
@@ -215,6 +239,12 @@ class Command(BaseCommand):
             )
         created: list[Post] = Post.objects.bulk_create(posts)  # objects now have ids
 
+        # auto_now_add / auto_now overwrite dates in bulk_create,
+        # bulk_update does not call save(), so it keeps our values
+        for post in created:
+            post.created_at, post.updated_at = self._post_dates()
+        Post.objects.bulk_update(created, ["created_at", "updated_at"])
+
         max_tags: int = min(MAX_TAGS_PER_POST, len(tags))
         for post in created:
             tags_count: int = random.randint(MIN_TAGS_PER_POST, max_tags)
@@ -227,26 +257,41 @@ class Command(BaseCommand):
         sentences_count: int = random.randint(MIN_COMMENT_SENTENCES, MAX_COMMENT_SENTENCES)
         return " ".join(self.fake.sentences(nb=sentences_count))
 
-    def _create_comments(self, count: int) -> list[Comment]:
+    def _published_posts(self, new_posts: list[Post]) -> list[Post]:
+        """Published posts of this run (already in memory); from the DB only if there are none."""
+        published: list[Post] = [
+            post for post in new_posts if post.status == Post.Status.PUBLISHED
+        ]
+        if published:
+            return published
+        return list(
+            Post.objects.filter(status=Post.Status.PUBLISHED).only("id", "created_at")
+        )
+
+    def _create_comments(self, count: int, new_posts: list[Post]) -> list[Comment]:
         if count == 0:
             return []
         author_ids: list[int] = list(User.objects.values_list("id", flat=True))
         if not author_ids:
             raise CommandError("Cannot create comments: there are no users. Use --users N.")
-        post_ids: list[int] = list(
-            Post.objects.filter(status=Post.Status.PUBLISHED).values_list("id", flat=True)
-        )
-        if not post_ids:
+        published_posts: list[Post] = self._published_posts(new_posts)
+        if not published_posts:
             raise CommandError(
                 "Cannot create comments: there are no published posts. Use --posts N."
             )
 
         comments: list[Comment] = [
             Comment(
-                post_id=random.choice(post_ids),
+                post=random.choice(published_posts),
                 author_id=random.choice(author_ids),
                 body=self._random_comment_body(),
             )
             for _ in range(count)
         ]
-        return Comment.objects.bulk_create(comments)
+        created: list[Comment] = Comment.objects.bulk_create(comments)
+
+        # comment date: between its post's created_at (from memory) and now
+        for comment in created:
+            comment.created_at = self._random_moment_between(comment.post.created_at, self.now)
+        Comment.objects.bulk_update(created, ["created_at"])
+        return created
