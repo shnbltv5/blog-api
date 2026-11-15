@@ -115,3 +115,18 @@ Aidana Shynbulatova, KBTU
 ## Использование AI
 
 Claude использовался для объяснения документации Django и Unfold и проверки кода. Весь код проверен и запущен мной.
+
+## Практика 3 — Django ORM
+
+### Реалистичные даты в seed
+`python manage.py seed` теперь выставляет `created_at` постов случайно за последние 365 дней.
+У ~30% постов `updated_at` позже на 1–30 дней. Комментарий всегда создан после своего поста.
+`auto_now_add`/`auto_now` обходятся через `bulk_update` после `bulk_create`.
+
+### Запросы ORM
+50 запросов лежат в `apps/blog/queries.py`, одна функция на запрос, словарь `QUERIES` номер → функция.
+
+```bash
+python manage.py queries                # все, кроме 40–44 (они меняют данные)
+python manage.py queries --number 31    # один запрос
+python manage.py queries --number 45 --sql   # плюс SQL
